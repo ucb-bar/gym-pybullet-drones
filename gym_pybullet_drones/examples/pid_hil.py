@@ -37,6 +37,10 @@ from gym_pybullet_drones.utils.utils import sync, str2bool
 import serial
 import time
 
+
+PORT = "/dev/ttyUSB0"  # Modify this to your ESP32's port (e.g., "/dev/ttyUSB0" on Linux)
+NOISE = False
+
 DEFAULT_DRONES = DroneModel("cf2x")
 DEFAULT_NUM_DRONES = 1
 DEFAULT_PHYSICS = Physics("pyb")
@@ -72,10 +76,12 @@ class ESP32Connection:
         # Convert observation to string and send. Add newline for Arduino to recognize the end.
         pos = observation[0:3]
         quat = observation[3:7]
-        quat =  add_quat_noise(quat, 0.05)
+        if NOISE:
+            quat =  add_quat_noise(quat, 0.05)
         vel = observation[10:13]
         ang_vel = observation[13:16]
-        ang_vel = add_euler_noise(ang_vel, 0.1)
+        if NOISE:
+            ang_vel = add_euler_noise(ang_vel, 0.1)
         print(f"x: {pos}")
         print(f'theta: {quat}')
         print(f'omega: {ang_vel*180}')
@@ -226,7 +232,7 @@ def run(
     START = time.time()
 
     # Connect to the ESP32
-    port = "/dev/ttyUSB1"  # Modify this to your ESP32's port (e.g., "/dev/ttyUSB0" on Linux)
+    port = PORT  # Modify this to your ESP32's port (e.g., "/dev/ttyUSB0" on Linux)
     esp32 = ESP32Connection(port)
 
     try:
